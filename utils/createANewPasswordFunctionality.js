@@ -56,6 +56,22 @@ function generatePassword(userName, siteLogin, site, pwLength, specialChars, num
 }
 
 async function createANewPassword(userIdentity) {
+    const initialDBDirCheck = fs.existsSync(`./db`);
+    if(!initialDBDirCheck){
+        fs.mkdirSync(`./db`, (err => err ? console.log(err) : ""))
+        let pwLib = []
+        let createANewPasswordOptions = await createANewPasswordQA();
+        const generatedPasswordObject = generatePassword(userIdentity, createANewPasswordOptions.login, createANewPasswordOptions.site,
+            createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
+            createANewPasswordOptions.numberChars);
+
+        generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
+        pwLib.push(generatedPasswordObject)
+        fs.writeFileSync(`./db/${userIdentity}PWDB.json`,
+            JSON.stringify(pwLib, null, 4),
+            (err) => err ? console.error(writeErr) : console.info('Success!'));
+            return
+    }
     const initialPassLibCheck = fs.existsSync(`./db/${userIdentity}PWDB.json`);
     if (initialPassLibCheck) {
         let createANewPasswordOptions = await createANewPasswordQA();

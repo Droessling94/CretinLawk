@@ -178,15 +178,15 @@ function verifyDeleteQA(userArray){
             {
                 type: 'input',
                 name:'password',
-                message: "Deleting a User Profile will also delete their associated passwords, due to this being such a costly mistake you will need to input your password thrice. What is this User's master password?",
+                message: "Deleting A User Profile Will Delete All Passwords, Please Confirm Your Masterpassword",
             },            {
                 type: 'input',
                 name:'passwordDoubleCheck',
-                message: "What is this User's master password?",
+                message: "Confirm The Password A Second Time",
             },            {
                 type: 'input',
                 name:'passwordTripleCheck',
-                message: "What is this User's master password?",
+                message: "Confirm The Password A Third Time, You're About To Blow Up All Of Your Passwords",
             }
         ])
         .then((menuAnswers) =>{
