@@ -39,7 +39,10 @@ function generatePassword(userName, siteLogin, site, pwLength, specialChars, num
     let reversedIdentitiy = reverseIdentity(userName)
     generatedPassword.push(...reversedIdentitiy)
     if (generatedPassword.length < pwLength) {
-        if (specialChars = 'Yes') {
+        if (numberChars) {
+            generatedPassword.push(numberCharsArray[Math.floor(Math.random() * (numberCharsArray.length - 1))]);
+        }
+        if (specialChars) {
             generatedPassword.push(specialCharsArray[Math.floor(Math.random() * (specialCharsArray.length - 1))]);
         }
         for (let i = generatedPassword.length; i < pwLength; i++) {
