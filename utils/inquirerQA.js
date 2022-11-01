@@ -48,14 +48,22 @@ function createANewPasswordQA(){
             message: 'How long should this password be?'
         },
         {
-            type: 'confirm',
+            type: 'list',
             name:'numberChars',
             message: 'Allow numbers?',
+            choices:["Yes","No"]
         },
         {
-            type: 'confirm',
+            type: 'list',
             name:'specialChars',
             message: 'Allow special characters?',
+            choices:["Yes","No"]
+        },
+        {
+            type: 'list',
+            name:'upperCaseChars',
+            message: 'Allow uppercased letters?',
+            choices:["Yes","No"]
         },
     ])
     .then((passOptionAnswers) => {
@@ -120,8 +128,8 @@ function loadUserQA(userArray){
         {
             type: 'list',
             name:'user',
-            message: "Select User Profile",
-            choices: [...userArray, "Add New User Profile", "Delete User Profile With Passwords"]
+            message: "Pleas Select Which User To Login As, Or You Can Add A User, Delete A User Or Exit The Application",
+            choices: [...userArray, "Add New User Profile", "Delete User Profile With Passwords", "Exit"]
         }
     ])
     .then((menuAnswers) =>{

@@ -6,13 +6,16 @@
 const { initUserQA, loadUserQA, masterPasswordVerifyQA, verifyDeleteQA } = require("./inquirerQA");
 const fs = require('fs');
 const { hashText, verifyHash } = require("./hashAndVerifyFunctionality");
+const isLengthValid = require('../helperFunctions/isLengthValid')
 
 async function initUserConfigSet(){
     const userArray = [];
     let newUserInfoObj = await initUserQA();
-    // console.log(newUserInfoObj);
+    if(!isLengthValid(newUserInfoObj.masterPassword.length)){
+      console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Beginning Of New User Questions'+'\n');
+      return await initUserConfigSet()
+    }
     newUserInfoObj.masterPassword = await hashText(newUserInfoObj.masterPassword)
-    // console.log(newUserInfoObj);
     userArray.push(newUserInfoObj)
     fs.writeFileSync(`./config.json`,
       JSON.stringify(userArray, null, 4),
@@ -27,8 +30,15 @@ async function userConfigSelection(parsedConfigFile){
     let userSelection = await loadUserQA(userArrayforQA)
     let userArrayforLogin = await parsedConfigFile.filter( (obj) => obj.user == userSelection.user ? obj : "")
   // console.log(userArrayforQA);
+    if(userSelection.user=='Exit'){
+      return false
+    }
     if(userSelection.user == 'Add New User Profile'){
       let newUserInfoObj = await initUserQA();
+      if(!isLengthValid(newUserInfoObj.masterPassword.length)){
+        console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Start Screen'+'\n');
+        return await userConfigSelection(parsedConfigFile)
+      }
     // console.log(newUserInfoObj);
     newUserInfoObj.masterPassword = await hashText(newUserInfoObj.masterPassword)
     // console.log(newUserInfoObj);
@@ -93,11 +103,16 @@ async function loadConfigFile(){
     const intialUserCheck = fs.existsSync(`./config.json`);
     if(intialUserCheck){
       const configFileStringified = fs.readFileSync(`./config.json`, 'utf8', (err,data) => {
-        err ? console.error("Error @ fs readfile @ beginning createANewPassword function " + err) : data;
+        err ? console.log('\n'+"App Breaking Error Reading File 'config.json', You Are Passing The Library Check But Dont Actually Have Any Files.... "+'\n'+err+'\n') : data;
       })
       let configFileParsed = await JSON.parse(configFileStringified)
       let userProfile = await userConfigSelection(configFileParsed)
+      if(!userProfile){
+        return false
+      } else {
         return userProfile
+      }
+
     } else {
         return await initUserConfigSet()
     }
