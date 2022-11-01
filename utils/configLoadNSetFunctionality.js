@@ -3,53 +3,48 @@
 //--If it cannot find a config file we will ask the user their info and make one--//
 ////***************////
 
-const { initUserQA, loadUserQA, masterPasswordVerifyQA, verifyDeleteQA } = require("./inquirerQA");
-const fs = require('fs');
+const { initUserQA, selectUserQA, masterPasswordVerifyQA, verifyDeleteQA } = require("./inquirerQA");
+const {unlink,existsSync} = require('fs');
 const { hashText, verifyHash } = require("./hashAndVerifyFunctionality");
-const isLengthValid = require('../helperFunctions/isLengthValid')
+const {isLengthValid} = require('../helperFunctions/validityHelpers');
+const {writeFileToDB, readAndParseFileFromDB} = require("../helperFunctions/crudHelpers");
 
-async function initUserConfigSet(){
+async function initialRun(){
     const userArray = [];
     let newUserInfoObj = await initUserQA();
     if(!isLengthValid(newUserInfoObj.masterPassword.length)){
-      console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Beginning Of New User Questions'+'\n');
-      return await initUserConfigSet()
+      console.log('\n'+'Returning To Previous Menu'+'\n');
+      return await initialRun()
     }
     newUserInfoObj.masterPassword = await hashText(newUserInfoObj.masterPassword)
     userArray.push(newUserInfoObj)
-    fs.writeFileSync(`./config.json`,
-      JSON.stringify(userArray, null, 4),
-      (err) => err ? console.error(writeErr) : console.info('Success!'));
+    writeFileToDB(`./config.json`,userArray)
 
-    return newUserInfoObj.user
 }
 
 //--currently also holding delete user functionality, move out in refactor--//
 async function userConfigSelection(parsedConfigFile){
     let userArrayforQA = await parsedConfigFile.map( obj => obj.user)
-    let userSelection = await loadUserQA(userArrayforQA)
-    let userArrayforLogin = await parsedConfigFile.filter( (obj) => obj.user == userSelection.user ? obj : "")
+    let selectUserAnswer = await selectUserQA(userArrayforQA)
+    let userArrayforLogin = await parsedConfigFile.filter( (obj) => obj.user == selectUserAnswer.destination ? obj : "")
   // console.log(userArrayforQA);
-    if(userSelection.user=='Exit'){
+    if(selectUserAnswer.destination=='Exit'){
       return false
     }
-    if(userSelection.user == 'Add New User Profile'){
+    if(selectUserAnswer.destination == 'Add New User Profile'){
       let newUserInfoObj = await initUserQA();
       if(!isLengthValid(newUserInfoObj.masterPassword.length)){
-        console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Start Screen'+'\n');
+        console.log('\n'+'Returning To Previous Menu'+'\n');
         return await userConfigSelection(parsedConfigFile)
       }
     // console.log(newUserInfoObj);
     newUserInfoObj.masterPassword = await hashText(newUserInfoObj.masterPassword)
     // console.log(newUserInfoObj);
     parsedConfigFile.push(newUserInfoObj)
-    fs.writeFileSync(`./config.json`,
-      JSON.stringify(parsedConfigFile, null, 4),
-      (err) => err ? console.error(writeErr) : console.info('Success!'));
-
+    writeFileToDB(`./config.json`,parsedConfigFile)
     return newUserInfoObj.user
     } 
-    else if(userSelection.user=="Delete User Profile With Passwords") {
+    else if(selectUserAnswer.destination=="Delete User Profile With Passwords") {
       let passWordTripleCheck = await verifyDeleteQA(userArrayforQA)
       let userArrayforDeletion = await parsedConfigFile.filter( (obj) => obj.user == passWordTripleCheck.user ? obj : "")
       // console.log(passWordTripleCheck);
@@ -65,12 +60,11 @@ async function userConfigSelection(parsedConfigFile){
         //set up removal of user from config.json
         const userIndex = await parsedConfigFile.findIndex(object => object.user == passWordTripleCheck.user)
         parsedConfigFile.splice(userIndex, 1);
-        fs.writeFileSync(`./config.json`, JSON.stringify(parsedConfigFile, null, 4),
-                (err) => err ? console.error(writeErr) : console.info('Success!'));
+        writeFileToDB(`./config.json`,parsedConfigFile)
         //deletes PWDB.JSON
-        const fileExistsCheck = fs.existsSync(`./db/${userArrayforDeletion[0].user}PWDB.json`);
+        const fileExistsCheck = existsSync(`./db/${userArrayforDeletion[0].user}PWDB.json`);
         if(fileExistsCheck){
-          fs.unlink(`./db/${userArrayforDeletion[0].user}PWDB.json`, (err => {
+          unlink(`./db/${userArrayforDeletion[0].user}PWDB.json`, (err => {
             if (err) console.log(err);
             else {
               console.log("\nDeleted file: example_file.txt");
@@ -86,7 +80,7 @@ async function userConfigSelection(parsedConfigFile){
 
       // console.log(userArrayforQA);
       // console.log(userArrayforLogin);
-      // console.log(userSelection);
+      // console.log(selectUserAnswer);
       let masterPasswordVerifyAnswer = await masterPasswordVerifyQA()
       let isValid = await verifyHash(userArrayforLogin[0].masterPassword, masterPasswordVerifyAnswer.password)
        if(isValid){
@@ -100,12 +94,9 @@ async function userConfigSelection(parsedConfigFile){
 }
 
 async function loadConfigFile(){
-    const intialUserCheck = fs.existsSync(`./config.json`);
+    const intialUserCheck = existsSync(`./config.json`);
     if(intialUserCheck){
-      const configFileStringified = fs.readFileSync(`./config.json`, 'utf8', (err,data) => {
-        err ? console.log('\n'+"App Breaking Error Reading File 'config.json', You Are Passing The Library Check But Dont Actually Have Any Files.... "+'\n'+err+'\n') : data;
-      })
-      let configFileParsed = await JSON.parse(configFileStringified)
+      let configFileParsed =  readAndParseFileFromDB(`./config.json`)
       let userProfile = await userConfigSelection(configFileParsed)
       if(!userProfile){
         return false
@@ -114,7 +105,7 @@ async function loadConfigFile(){
       }
 
     } else {
-        return await initUserConfigSet()
+        return await initialRun()
     }
 
 //-- we use the map function to return the user in each object within config file--//
@@ -132,4 +123,4 @@ async function loadConfigFile(){
 // localTestWrapper()
 ////*********************************************////
 
-module.exports = {initUserConfigSet,userConfigSelection,loadConfigFile}
+module.exports = {initialRun,userConfigSelection,loadConfigFile}

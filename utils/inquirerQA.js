@@ -77,7 +77,7 @@ function findBySiteQA() {
         {
             type: 'input',
             name:'siteName',
-            message: 'What website or service do you need the password for?'
+            message: "What Website's Password Do You Need To Access?"
         }
     ])
     .then((answers) =>{
@@ -121,13 +121,13 @@ function initUserQA(){
     })
 }
 
-function loadUserQA(userArray){
+function selectUserQA(userArray){
 
     return inquirer
     .prompt([
         {
             type: 'list',
-            name:'user',
+            name: 'destination',
             message: "Pleas Select Which User To Login As, Or You Can Add A User, Delete A User Or Exit The Application",
             choices: [...userArray, "Add New User Profile", "Delete User Profile With Passwords", "Exit"]
         }
@@ -160,17 +160,24 @@ function updatePassQA(){
             message: 'How long should this password be?'
         },
         {
-            type: 'confirm',
+            type: 'list',
             name:'numberChars',
             message: 'Allow numbers?',
+            choices:["Yes","No"]
         },
         {
-            type: 'confirm',
+            type: 'list',
             name:'specialChars',
             message: 'Allow special characters?',
-        }
-    ])
-    .then((passOptionAnswers) => {
+            choices:["Yes","No"]
+        },
+        {
+            type: 'list',
+            name:'upperCaseChars',
+            message: 'Allow uppercased letters?',
+            choices:["Yes","No"]
+        }])
+        .then((passOptionAnswers) => {
         return passOptionAnswers;
     })
 }
@@ -213,4 +220,4 @@ function verifyDeleteQA(userArray){
 ////*************************************************////
 
 
-module.exports = { mainMenuOptionsQA , verifyDeleteQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,initUserQA ,loadUserQA,masterPasswordVerifyQA}
+module.exports = { mainMenuOptionsQA , verifyDeleteQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,initUserQA ,selectUserQA,masterPasswordVerifyQA}

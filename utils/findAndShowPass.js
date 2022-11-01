@@ -3,6 +3,7 @@ const fs = require('fs');
 const { decryptThis, encryptThis } = require('../utils/encrypt_decryptFunctions');
 const { findBySiteQA, updatePassQA } = require('./inquirerQA');
 const { generatePassword } = require('./createANewPasswordFunctionality');
+const { writeFileToDB, readAndParseFileFromDB } = require('../helperFunctions/crudHelpers');
 ////******************************////
 
 
@@ -18,10 +19,7 @@ function findBySite(pWLib, siteName) {
 async function showPassWordsBySite(user) {
     const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (initialDBCheck) {
-    const PWLib = fs.readFileSync(`./db/${user}PWDB.json`, 'utf8', (err, data) => {
-        err ? console.error("Error @ showPasswords() with fsread for PWLIB " + err) : console.log(data);
-    })
-    const parsedPWLib = await JSON.parse(PWLib)
+    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`)
     // console.log('Parsed Library Of Passwords Below');
     // console.log(parsedPWLib);
     const qaAnswer = await findBySiteQA()
@@ -40,10 +38,7 @@ async function showPassWordsBySite(user) {
 async function showAllPassWords(user) {
     const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (initialDBCheck){
-    const PWLib = fs.readFileSync(`./db/${user}PWDB.json`, 'utf8', (err, data) => {
-        err ? console.error("Error @ showPasswords() with fsread for PWLIB " + err) : console.log(data);
-    })
-    const parsedPWLib = await JSON.parse(PWLib)
+    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const passWordLeak = await parsedPWLib.map(obj => `${user}'s Password For ${obj.site} is ${decryptThis(obj.genPass)}`)
     if (passWordLeak[0]) {
         console.log(passWordLeak);
@@ -59,21 +54,17 @@ async function showAllPassWords(user) {
 async function updatePassWord(user) {
     const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (initialDBCheck) {
-        const PWLib = fs.readFileSync(`./db/${user}PWDB.json`, 'utf8', (err, data) => {
-            err ? console.error("Error @ showPasswords() with fsread for PWLIB " + err) : console.log(data);
-        })
-        const parsedPWLib = await JSON.parse(PWLib)
+        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
         const qaAnswer = await findBySiteQA()
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             let createANewPasswordOptions = await updatePassQA()
-            const generatedPasswordObject = generatePassword(user, searchedSiteObj.site,
+            const generatedPasswordObject = generatePassword(searchedSiteObj.login,searchedSiteObj.site,
                 createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
-                createANewPasswordOptions.numberChars
+                createANewPasswordOptions.numberChars,createANewPasswordOptions.upperCaseChars
             );
             searchedSiteObj.genPass = encryptThis(generatedPasswordObject.genPass)
-            fs.writeFileSync(`./db/${user}PWDB.json`, JSON.stringify(parsedPWLib, null, 4),
-                (err) => err ? console.error(writeErr) : console.info('Success!'));
+            writeFileToDB(`./db/${user}PWDB.json`,parsedPWLib)
         } else { console.log("No Site Found By That Name, No Password Found"); }
     } else {console.log("No Saved Passwords");}
 }
@@ -82,17 +73,13 @@ async function updatePassWord(user) {
 async function deletePassword(user) {
     const initialUserCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (initialUserCheck) {
-        const PWLib = fs.readFileSync(`./db/${user}PWDB.json`, 'utf8', (err, data) => {
-            err ? console.error("Error @ showPasswords() with fsread for PWLIB " + err) : console.log(data);
-        })
-        const parsedPWLib = await JSON.parse(PWLib)
+        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
         const qaAnswer = await findBySiteQA()
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             const pwIndex = await parsedPWLib.findIndex(object => object.site === searchedSiteObj.site)
             parsedPWLib.splice(pwIndex, 1)
-            fs.writeFileSync(`./db/${user}PWDB.json`, JSON.stringify(parsedPWLib, null, 4),
-                (err) => err ? console.error(writeErr) : console.info('Success!'));
+                writeFileToDB(`./db/${user}PWDB.json`,parsedPWLib)
         } else { console.log("No Site Found By That Name, No Password Found"); }
     } else {console.log("No Saved Passwords");
 }

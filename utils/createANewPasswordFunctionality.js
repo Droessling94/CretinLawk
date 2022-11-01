@@ -5,64 +5,39 @@
 
 
 ////**********IMPORTS*************////
-const inquirer = require('inquirer');
 const fs = require('fs');
 const { createANewPasswordQA } = require('./inquirerQA');
-const { log, error } = require('console');
 const { encryptThis } = require('./encrypt_decryptFunctions');
-const isLengthValid = require('../helperFunctions/isLengthValid');
+const {isLengthValid} = require('../helperFunctions/validityHelpers');
+const {writeFileToDB, writeDB, readAndParseFileFromDB} = require('../helperFunctions/crudHelpers');
 ////******************************////
 
 
-//--Only using this function to reverse the name of the user--//
-function reverseIdentity(identity) {
-    let stringArray = identity.split("");
-    let reverseArray = stringArray.reverse();
-    let joinedString = reverseArray.join("");
-    return joinedString;
-}
-
-
-function generatePassword(siteLogin, site, pwLength, specialChars, numberChars, upperCaseChars) {
+function generatePassword(siteLogin, site, pwLength, specialCharsOption, numberCharsOption, upperCaseCharsOption) {
     const specialCharsArray = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "+", "(", ")", "{", "}", "[", "]", "?", "/", ">", "<", ".", ","];
     const numberCharsArray = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
     const upperCaseArray = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-    const charArrayAvailable = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-    const generatedPassword = [];
-    if (upperCaseChars) {
-        charArrayAvailable.push(...specialCharsArray)
+    const charArrayAvailableDuringGen = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+    const generatedPasswordCharArray = [];
+//--Each If Pushes Associated Array's Contents Into charArrayAvailableDuringGen And Pushes One Random Char From The Associate Array To The Generated Password--//
+    if (upperCaseCharsOption == 'Yes') { charArrayAvailableDuringGen.push(...upperCaseArray);generatedPasswordCharArray.push(upperCaseArray[Math.floor(Math.random() * (upperCaseArray.length - 1))]);}
+    if (specialCharsOption == 'Yes')   { charArrayAvailableDuringGen.push(...specialCharsArray);generatedPasswordCharArray.push(numberCharsArray[Math.floor(Math.random() * (numberCharsArray.length - 1))]);}
+    if (numberCharsOption == 'Yes')    { charArrayAvailableDuringGen.push(...numberCharsArray);generatedPasswordCharArray.push(specialCharsArray[Math.floor(Math.random() * (specialCharsArray.length - 1))]);}
+    for (let i = generatedPasswordCharArray.length; i < pwLength; i++) {
+        generatedPasswordCharArray.push(charArrayAvailableDuringGen[Math.floor(Math.random() * (charArrayAvailableDuringGen.length - 1))]);
     }
-    if (specialChars) {
-        charArrayAvailable.push(...specialCharsArray)
-    }
-    if (numberChars) {
-        charArrayAvailable.push(...numberCharsArray)
-    }
-        if (upperCaseChars == 'Yes') {
-        generatedPassword.push(upperCaseArray[Math.floor(Math.random() * (upperCaseArray.length - 1))]);
-        }
-        if (numberChars == 'Yes') {
-            generatedPassword.push(numberCharsArray[Math.floor(Math.random() * (numberCharsArray.length - 1))]);
-        }
-        if (specialChars == "Yes") {
-            generatedPassword.push(specialCharsArray[Math.floor(Math.random() * (specialCharsArray.length - 1))]);
-        }
-        for (let i = generatedPassword.length; i < pwLength; i++) {
-            generatedPassword.push(charArrayAvailable[Math.floor(Math.random() * (charArrayAvailable.length - 1))]);
-        }
-
-    let generatedPasswordString = generatedPassword.join('');
-    return { "login": siteLogin, "site": site, "genPass": generatedPasswordString };
+    let generatedPassword = generatedPasswordCharArray.join('');
+    return { "login": siteLogin, "site": site, "genPass": generatedPassword };
 }
 
 async function createANewPassword(userIdentity) {
     const initialDBDirCheck = fs.existsSync(`./db`);
     if(!initialDBDirCheck){
-        fs.mkdirSync(`./db`, (err => err ? console.log(err) : ""))
+        writeDB(`./db`)
         let pwLib = []
         let createANewPasswordOptions = await createANewPasswordQA();
         if(!isLengthValid(createANewPasswordOptions.pwLength)){
-            console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Main Menu'+'\n');
+            console.log('\n'+'Returning To Previous Menu'+'\n');
             return
         }
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
@@ -71,37 +46,29 @@ async function createANewPassword(userIdentity) {
 
         generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
         pwLib.push(generatedPasswordObject)
-        fs.writeFileSync(`./db/${userIdentity}PWDB.json`,
-            JSON.stringify(pwLib, null, 4),
-            (err) => err ? console.error(writeErr) : console.info('Success!'));
+            writeFileToDB(`./db/${userIdentity}PWDB.json`,pwLib)
             return
     }
     const initialPassLibCheck = fs.existsSync(`./db/${userIdentity}PWDB.json`);
     if (initialPassLibCheck) {
         let createANewPasswordOptions = await createANewPasswordQA();
         if(!isLengthValid(createANewPasswordOptions.pwLength)){
-            console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Main Menu'+'\n');
+            console.log('\n'+'Returning To Previous Menu'+'\n');
             return
         }
-        const PWLib = fs.readFileSync(`./db/${userIdentity}PWDB.json`, 'utf8', (err, data) => {
-            err ? console.error("Error @ fs readfile @ beginning createANewPassword function " + err) : data;
-        })
-        const parsedPWLib = JSON.parse(PWLib)
+        const parsedPWLib = readAndParseFileFromDB(`./db/${userIdentity}PWDB.json`)
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
             createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
             createANewPasswordOptions.numberChars,createANewPasswordOptions.upperCaseChars);
 
         generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
         parsedPWLib.push(generatedPasswordObject)
-
-        fs.writeFileSync(`./db/${userIdentity}PWDB.json`,
-            JSON.stringify(parsedPWLib, null, 4),
-            (err) => err ? console.error(writeErr) : console.info('Success!'));
+            writeFileToDB(`./db/${userIdentity}PWDB.json`,parsedPWLib)
     } else {
         let pwLib = []
         let createANewPasswordOptions = await createANewPasswordQA();
         if(!isLengthValid(createANewPasswordOptions.pwLength)){
-            console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'Your Password Length is Either Not A Number Or Not Larger Than 0.'+'\n'+'Returning To Main Menu'+'\n');
+            console.log('\n'+'Returning To Previous Menu'+'\n');
             return
         }
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
@@ -110,9 +77,7 @@ async function createANewPassword(userIdentity) {
 
         generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
         pwLib.push(generatedPasswordObject)
-        fs.writeFileSync(`./db/${userIdentity}PWDB.json`,
-            JSON.stringify(pwLib, null, 4),
-            (err) => err ? console.error(writeErr) : console.info('Success!'));
+        writeFileToDB(`./db/${userIdentity}PWDB.json`, pwLib)
     }
 
 }

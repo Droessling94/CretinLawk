@@ -1,12 +1,9 @@
 ////**********IMPORTS*************////
-const fs = require('fs');
-const { encryptThis, decryptThis } = require('./utils/encrypt_decryptFunctions');
-const { updatePWLibs } = require('./utils/updatePWLibsFunction');
 const { mainMenuOptionsQA, showPassMainQA } = require('./utils/inquirerQA');
 const { createANewPassword } = require('./utils/createANewPasswordFunctionality');
-const { log } = require('console');
 const { showPassWordsBySite, showAllPassWords, updatePassWord, deletePassword } = require('./utils/findAndShowPass');
 const { loadConfigFile, initUserConfigSet } = require('./utils/configLoadNSetFunctionality');
+const {existsSync} = require('fs')
 ////******************************////
 
 
@@ -42,12 +39,15 @@ async function mainMenu(user) {
 }
 
 async function onStart() {
+    const initialRunCheck = existsSync(`./config.json`)
+    if(!initialRunCheck) { await initialRun(); }
     let userProfile = await loadConfigFile();
-    console.log(userProfile);
-    if (!userProfile){
+
+    if(!userProfile) {
         console.log('\n'+"Thank you for using CretinLawk!"+'\n');
         return
     }
+    console.log('\n'+`Successfully Logged In As ${userProfile}`+'\n');
     await mainMenu(userProfile);
     console.log('\n'+"Thank you for using CretinLawk!"+'\n');
 }
@@ -66,9 +66,11 @@ async function onStart() {
 //TODO -- POSSIBLY SET UP HINT SYSTEM
 //TODO -- CLEAN UP QUESTIONS AND COMMAND LINE OUTPUT TO LOOK NICE
 //TODO -- ENCRYPT CODE THAT ONLY RUNS WITH A KEY POSSIBLY
+//TODO -- INTERGRATE NPMCHALK FOR BETTER APP READABLIITY
+//TODO -- CHANGE START MENU TO HAVE USER SELECTION - EXIT APP FUNCTIONALITY
+//TODO -- CHANGE EXIT IN USER SELECTION TO MEAN EXIT BACK TO MAIN MENU OR APP START SCREEN DEPENDING ON WHERE YOU CAME FROM
 //BIGTODO -- HARMING OR HAMMING TABLE OR HUFFMAN TREE -- WAY OF ENCODING
 //BIGTODO -- REFACTOR THIS BITCH TO MAKE SENSE
-
 onStart();
 
 

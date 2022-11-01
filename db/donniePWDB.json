@@ -1,0 +1,22 @@
+[
+    {
+        "login": "asdfasd",
+        "site": "aasdfasdf",
+        "genPass": "2051c0d961db4591d13836d6cdee384a:c6c8eb492e24786fe919bfeaa57c2c3346f9dbc8f4dc28ab61cd0655e20114cc:4dbf12749fd8f24298bba5f087ac9f8e4aab9b2f13b6b99c812a07624691a212"
+    },
+    {
+        "login": "asdefefefggggggg",
+        "site": "gmail",
+        "genPass": "c4b75dec92a18a9b73272c9c3bd0a08d:01ab53b92ca94ea4c404f12d76b30ad46b024785ed93293cda12d4eb1b510f3f:afd9b90bde0ef168764df3a389d1151411b49486a8ce23a74e963eeff277783f"
+    },
+    {
+        "login": "dasfasdf",
+        "site": "gmail",
+        "genPass": "a5765101425d228bab978ec03443bc1c:32b24722f2872db92fc2316c0ebada58ba3b6acad54f5fcd8a70a09d72f0380a:3a818c39afee39465427540ad752e1e0a6196f171a202b99c2aefd6506bef763"
+    },
+    {
+        "login": "asdasdf",
+        "site": "asdfasdf",
+        "genPass": "d0ed14c128d1e22de075dc51e307b47c:cbdc1815b750675f27995429db8532b09bc7264c477156379bf64cc6419d34ce:5067336c1cc2baa9095c1d3497a627129ecde4b694882f34b55e8390e0218bf9"
+    }
+]
