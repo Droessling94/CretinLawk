@@ -5,6 +5,7 @@ const { findBySiteQA, updatePassQA, showPassMainQA, mainMenuOptionsQA, deletePas
 const { generatePassword, randomlyGeneratePassword, manuallyGeneratePassword, randomlyUpdatePassword, manuallyUpdatePassword } = require('./../helperFunctions/generatePassword');
 const { writeFileToDB, writeDB, readAndParseFileFromDB, findBySite } = require('../helperFunctions/crudHelpers');
 const { changeUser } = require('./profileManagement.js');
+const { minorAlert, successAlert } = require('./chalkTalk');
 ////******************************////
 
 
@@ -44,9 +45,9 @@ async function showPasswordBySite(user) {
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             decryptedPasswordBySite = decryptThis(searchedSiteObj.genPass);
-            console.log('\n' + `${user}'s Login For ${qaAnswer.siteName} is ${searchedSiteObj.login}` + '\n' + `${user}'s Password For ${qaAnswer.siteName} is ${decryptedPasswordBySite}` + '\n');
-        } else { console.log("No Site Found By That Name, No Password Found"); }
-    } else { console.log("No Saved Passwords"); }
+            successAlert(`${user}'s ${qaAnswer.siteName} Login:${searchedSiteObj.login} -- Password:${decryptedPasswordBySite}`)
+        } else { minorAlert("No Site Found By That Name, No Password Found"); }
+    } else { minorAlert("No Saved Passwords") }
 }
 
 function showAllPasswords(user) {
@@ -57,10 +58,10 @@ function showAllPasswords(user) {
         if (passWordLeak[0]) {
             console.table(passWordLeak);
         } else {
-            console.log("No Saved Passwords");
+            minorAlert("No Saved Passwords");
         }
     } else {
-        console.log("No Saved Passwords");
+        minorAlert("No Saved Passwords");
     }
 }
 
@@ -77,14 +78,14 @@ async function showPasswords(user) {
 //--TODO -- refactor this
 async function updatePassWord(user) {
     if(!fs.existsSync(`./db/${user}PWDB.json`)){
-        console.log("No Saved Passwords");
+        minorAlert("No Saved Passwords");
         return
     }
     const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
     const foundPassword = findBySite(parsedPWLib, findBySiteAnswer.siteName)
     if(!foundPassword){
-        console.log("No Site Found By That Name, No Password Found");
+        minorAlert("No Site Found By That Name, No Password Found");
         return
     }
     let newGeneratedPassword;
@@ -103,14 +104,14 @@ async function updatePassWord(user) {
 async function deletePassword(user) {
     const initialPWFileCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (!initialPWFileCheck) {
-        console.log('\n' + 'No Saved Passwords' + '\n' + 'Returning To Previous Menu');
+        minorAlert('No Saved Passwords, Returning To Previous Menu');
         return;
     }
     const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
     const foundSite = findBySite(parsedPWLib, findBySiteAnswer.siteName)
     if (!foundSite) {
-        console.log("No Site Found By That Name, No Password Found");
+        minorAlert("No Site Found By That Name, No Password Found")
         return
     }
     const deletePasswordAnswer = await deletePasswordQA(foundSite.site)

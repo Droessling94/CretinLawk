@@ -1,21 +1,22 @@
 const fs = require('fs');
+const {minorAlert, successAlert, majorAlert} = require('../utils/chalkTalk');
 
 function writeFileToDB(path, preStringifiedData){
     fs.writeFileSync(path, JSON.stringify(preStringifiedData, null, 4),
-    (err) => err ? console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'File Was Unable To Be Saved'+'\n') 
-                 : console.log('\n'+"File Saved."+'\n'));
+    (err) => err ? minorAlert('File Was Unable To Be Saved')
+                 : successAlert("File Saved."))
 };
 
 function readAndParseFileFromDB(path){
     const fileContents = fs.readFileSync(path, 'utf8', (err, data) => 
-        err ? console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'File Was Unable To Be Read'+'\n') : data)
+        err ? majorAlert('File Was Unable To Be Read') : data)
     const parsedFileContents = JSON.parse(fileContents)
         return parsedFileContents;
 }
 
 function writeDB(path){
-    fs.mkdirSync(path, (err) => err ? console.log('\n'+"!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!"+'\n'+'\n'+'File Was Unable To Be Saved'+'\n') 
-    : console.log('\n'+"Database Intialized."+'\n'))
+    fs.mkdirSync(path, (err) => err ? majorAlert('File Was Unable To Be Saved')
+    : successAlert("Database Intialized."))
 }
 
 function findBySite(pWLib, siteName) {

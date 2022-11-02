@@ -8,6 +8,7 @@ const { deleteUserProfile, createUserProfile } = require('./profileCrud')
 const { hashText, verifyHash } = require("./security");
 const { isLengthValid } = require('../helperFunctions/validityHelpers');
 const { writeFileToDB } = require("../helperFunctions/crudHelpers");
+const { successAlert } = require("./chalkTalk");
 
 async function initialRun() {
   const initialDB = [];
@@ -26,7 +27,7 @@ async function loginUser(configFile) {
   }
   else if (selectUserMenuAnswer.destination == "Delete User Profile With Passwords") {
     await deleteUserProfile(userNameArrayForQA, configFile)
-    await loginUser(configFile)
+    return await loginUser(configFile)
   }
   else if (selectUserMenuAnswer.destination == 'Exit') {
     return 'Exit'
@@ -43,7 +44,6 @@ async function loginUser(configFile) {
 
 async function chooseUser(configFile) {
   let userProfile = await loginUser(configFile)
-  console.log(userProfile); //2
   return !userProfile ? await chooseUser(configFile) 
     : userProfile == 'Exit' ? 'Exit' 
     : userProfile
@@ -51,11 +51,10 @@ async function chooseUser(configFile) {
 
 async function changeUser(user, configFile){
   replacementUser = await chooseUser(configFile);
-  console.log(replacementUser); //1
   if(replacementUser == 'Exit') {
       return user
   }
-  console.log('\n' + `Successfully Logged In As ${replacementUser}` + '\n');
+  successAlert(`Logged In As ${replacementUser}`)
   return replacementUser
 }
 

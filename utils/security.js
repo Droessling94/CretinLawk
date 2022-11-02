@@ -8,6 +8,7 @@
 
 ////**********IMPORTS*************////
 let crypto = require('crypto');
+let { minorAlert }  = require('./chalkTalk')
 ////******************************////
 
 
@@ -52,7 +53,7 @@ function verifyHash(dbHash, textToVerify){
     if(userHashedText == hashTextToVerifyPreBuffer ){
         return true
     } else { 
-        console.log('\n' + "!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!" + '\n' + 'Your Passwords Did Not Match!' + '\n' + 'Returning To Previous Menu');
+        minorAlert('Your Passwords Did Not Match! Returning To Previous Menu');
         return false
     }
 }

@@ -3,16 +3,17 @@ const { verifyHash, hashText } = require("./security");
 const { writeFileToDB } = require("../helperFunctions/crudHelpers");
 const { existsSync, unlinkSync } = require("fs");
 const { isLengthValid } = require("../helperFunctions/validityHelpers");
+const { minorAlert, successAlert, majorAlert } = require("./chalkTalk");
 
 
 async function createUserProfile(configFile){
     let newUserInfoAnswer = await newUserQA();
     if(!newUserInfoAnswer.userName){
-        console.log('\n' + "You Must Provide The User's name" + '\n');
+        minorAlert("You Must Provide The User's name! Returning to Previous Menu")
         return false
       }
     if(!isLengthValid(newUserInfoAnswer.masterPassword.length)){
-        console.log('\n'+ "!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!" + '\n'+'Password Was An Invalid Length'+'\n'+'Returning To Previous Menu'+'\n');
+        minorAlert('Password Was An Invalid Length! Returning To Previous Menu')
         return false
     }
     newUserInfoAnswer.masterPassword = hashText(newUserInfoAnswer.masterPassword)
@@ -23,25 +24,28 @@ async function createUserProfile(configFile){
 
 async function deleteUserProfile(userNameArray, configFile){
     let deleteUserMenuAnswer = await deleteUserMenuQA(userNameArray);
+    console.log(deleteUserMenuAnswer);
         if(deleteUserMenuAnswer.destination == 'Exit To Previous Menu'){
-            console.log("\n"+'Returning To Previous Menu'+'\n');
+            successAlert('Exiting To Previous Menu')
             return false;
         }
     let chosenUser = await configFile.filter( (obj) => obj.userName == deleteUserMenuAnswer.destination ? obj : "")
     let isValidFirst = verifyHash(chosenUser[0].masterPassword,deleteUserMenuAnswer.password);
     let isValidSecond = verifyHash(chosenUser[0].masterPassword,deleteUserMenuAnswer.passwordDoubleCheck);
         if(!isValidFirst || !isValidSecond ){
-            console.log('\n' + "!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!" + '\n' + 'Your Passwords Either Did Not Match Your MasterPassword Or Did Not Match Each Other' + '\n' + 'Returning To Previous Menu');
+            minorAlert('Your Passwords Either Did Not Match Your MasterPassword Or Did Not Match Each Other! Returning To Previous Menu')
             return false;
         }
-    const userIndex = await configFile.findIndex(object => object.user == deleteUserMenuAnswer.user)
+    const userIndex = await configFile.findIndex(object => object.user == deleteUserMenuAnswer.destination)
     configFile.splice(userIndex, 1);
     writeFileToDB(`./config.json`,configFile)
     const userPasswords = existsSync(`./db/${chosenUser[0].user}PWDB.json`);
         if(userPasswords){
-            unlinkSync(`./db/${chosenUser[0].user}PWDB.json`, (err => {if (err) console.log(err);else {console.log("\nDeleted file: example_file.txt");}}));
-            console.log('\n'+'User Profile And Associated Passwords Deleted' + '\n' + 'Returning To Previous Menu')
+            unlinkSync(`./db/${chosenUser[0].user}PWDB.json`, (err => {if (err) majorAlert(err);else {""}}));
+            successAlert('User Profile And Associated Passwords Deleted! Returning To Previous Menu')
             return true;
+        } else {
+            minorAlert('User Profile Deleted But Password File Remains, Please Manually Delete This From Your DB Folder')
         }
 }
 

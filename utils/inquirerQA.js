@@ -92,7 +92,7 @@ function showPassMainQA() {
             type: 'list',
             name:'destination',
             message: 'Which Password?',
-            choices: ['Find By Site Name', 'Show All']
+            choices: ['Show All', 'Find By Site Name']
         }
 
     ])
@@ -110,11 +110,11 @@ function newUserQA(){
             message: "What is the User's name"
         },
         {
-            type: 'input',
+            type: 'password',
             name:'masterPassword',
             message: "What would you like the User's master password to be? This is very VERY important to remember, If you cannot remember this password there is no decrypting your saved passwords",
+            mask: "*"
         }
-
     ])
     .then((menuAnswers) =>{
         return menuAnswers
@@ -142,9 +142,10 @@ function masterPasswordVerificationQA(){
     return inquirer
     .prompt([
         {
-            type: 'input',
+            type: 'password',
             name:'password',
             message: "What is this User's master password?",
+            mask: '*'
         }
     ])
     .then((menuAnswers) =>{
@@ -203,13 +204,15 @@ function deleteUserMenuQA(userArray){
                 choices: [...userArray, 'Exit To Previous Menu']
             },
             {
-                type: 'input',
+                type: 'password',
                 name:'password',
                 message: "Deleting A User Profile Will Delete All Passwords, Please Confirm Your Masterpassword",
+                mask: "*"
             },            {
-                type: 'input',
+                type: 'password',
                 name:'passwordDoubleCheck',
                 message: "Are You Sure? You Are About To Nuke Your Passwords, Re-Type Your Password A Second Time To Confirm",
+                mask: "*"
             }
         ])
         .then((menuAnswers) =>{
@@ -224,7 +227,7 @@ function deletePasswordQA(site){
             type: 'list',
             name:'confirmation',
             message: `You Are About To Delete ${site}'s Password From Your Database. Are You Sure?`,
-            choices:["Yes","No"]
+            choices:["No","Yes"]
         }
     ])
     .then((menuAnswers) =>{

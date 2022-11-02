@@ -3,25 +3,29 @@ const { mainMenu} = require('./utils/passwordCrud');
 const { chooseUser, initialRun} = require('./utils/profileManagement');
 const { existsSync } = require('fs');
 const { readAndParseFileFromDB } = require('./helperFunctions/crudHelpers');
+const { successAlert } = require('./utils/chalkTalk');
 ////******************************////
 
 
 
 async function onStart() {
+
+    //INTRO CHALK PROMPT
     const initialRunCheck = existsSync(`./config.json`)
     if (!initialRunCheck) { await initialRun(); }
     let configFile = readAndParseFileFromDB(`./config.json`)
-    let userProfile = await chooseUser(configFile);
-    if (!userProfile) {
+    let chosenUser = await chooseUser(configFile);
+    if (!chosenUser) {
         console.log('\n' + "Thank you for using CretinLawk!" + '\n');
         return
     }
-    if (userProfile=='Exit'){
+    if (chosenUser=='Exit'){
         return console.log('\n' + "Thank you for using CretinLawk!" + '\n');
     }
-    console.log('\n' + `Successfully Logged In As ${userProfile}` + '\n');
-    await mainMenu(userProfile, configFile);
+    successAlert(`Successfully Logged In As ${chosenUser}`)
+    await mainMenu(chosenUser, configFile);
     console.log('\n' + "Thank you for using CretinLawk!" + '\n');
+    //OUTRO CHALK PROMPT
 }
 
 
@@ -29,12 +33,14 @@ async function onStart() {
 // mainMenu('Donnie')
 ////********************************************////
 
-//TODO -- ADD PW LENGTH VALIDATION SO THEY CAN ONLY DO MAX LENGTH (LIKE 128 CHAR I THINK())
+//TODO -- IF USER DELETES SELF IT AND EXITS IT WILL BRING THEM BACK TO MENU AS DELETED USER WITH FULL FUNCTIONALITY
+//TODO -- WRITE A SMALL PROMPT ADVISING THE USER ALWAYS USE RANDOMLY GEND PASSWORDS AND TO WRITE DOWN AND NEVER FORGET MASTERPASS.
 //TODO -- README FILE ADDITION WITH SOME VERBOSE INSTRUCTIONS
 //TODO -- POSSIBLY SET UP HINT SYSTEM
+//TODO -- UNLINK NOT ACTUALLY DELETING PW FILE FOR SOME REASON, REQUIRING MANUAL DELETION
 //TODO -- CLEAN UP QUESTIONS AND COMMAND LINE OUTPUT TO LOOK NICE(getting There)
-//TODO -- INTERGRATE NPMCHALK FOR BETTER APP READABLIITY
 //BIGTODO -- HARMING OR HAMMING TABLE OR HUFFMAN TREE -- WAY OF ENCODING
 //BIGTODO -- REFACTOR THIS BITCH TO MAKE SENSE(getting there)
+
 onStart();
 
