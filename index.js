@@ -30,8 +30,6 @@ async function onStart() {
 ////********************************************////
 
 
-
-//TODO -- COPY TO CLIPBOARD OPTION
 //TODO -- README FILE ADDITION WITH SOME VERBOSE INSTRUCTIONS
 //TODO -- POSSIBLY SET UP HINT SYSTEM
 //TODO -- CLEAN UP QUESTIONS AND COMMAND LINE OUTPUT TO LOOK NICE(getting There)

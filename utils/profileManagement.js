@@ -11,14 +11,13 @@ const { writeFileToDB } = require("../helperFunctions/crudHelpers");
 
 async function initialRun() {
   const initialDB = [];
-  await createUserProfile(initialDB)
   return !await createUserProfile(initialDB) ? await initialRun() : ""
 }
 
 
 async function loginUser(configFile) {
 
-  let userNameArrayForQA = await configFile.map(obj => obj.user );
+  let userNameArrayForQA = await configFile.map(obj => obj.userName );
   let selectUserMenuAnswer = await selectUserMenuQA(userNameArrayForQA);
   if (selectUserMenuAnswer.destination == 'Add New User Profile') {
     let newUser = await createUserProfile(configFile)
@@ -34,16 +33,17 @@ async function loginUser(configFile) {
   }
   else {
     let masterPasswordVerifyAnswer = await masterPasswordVerificationQA();
-    let userSelected = configFile.filter((obj) => obj.user == selectUserMenuAnswer.destination ? obj : "");
+    let userSelected = configFile.filter((obj) => obj.userName == selectUserMenuAnswer.destination ? obj : "");
     return !verifyHash(userSelected[0].masterPassword, masterPasswordVerifyAnswer.password)
       ? await loginUser(configFile)
-      : userSelected[0].user
+      : userSelected[0].userName
   }
 }
 
 
 async function chooseUser(configFile) {
   let userProfile = await loginUser(configFile)
+  console.log(userProfile); //2
   return !userProfile ? await chooseUser(configFile) 
     : userProfile == 'Exit' ? 'Exit' 
     : userProfile
@@ -51,6 +51,7 @@ async function chooseUser(configFile) {
 
 async function changeUser(user, configFile){
   replacementUser = await chooseUser(configFile);
+  console.log(replacementUser); //1
   if(replacementUser == 'Exit') {
       return user
   }

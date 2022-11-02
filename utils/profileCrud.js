@@ -27,7 +27,7 @@ async function deleteUserProfile(userNameArray, configFile){
             console.log("\n"+'Returning To Previous Menu'+'\n');
             return false;
         }
-    let chosenUser = await configFile.filter( (obj) => obj.user == deleteUserMenuAnswer.destination ? obj : "")
+    let chosenUser = await configFile.filter( (obj) => obj.userName == deleteUserMenuAnswer.destination ? obj : "")
     let isValidFirst = verifyHash(chosenUser[0].masterPassword,deleteUserMenuAnswer.password);
     let isValidSecond = verifyHash(chosenUser[0].masterPassword,deleteUserMenuAnswer.passwordDoubleCheck);
         if(!isValidFirst || !isValidSecond ){

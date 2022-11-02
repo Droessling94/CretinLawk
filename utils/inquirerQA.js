@@ -35,7 +35,7 @@ function createANewPasswordQA(){
         {
             type: 'input',
             name:'site',
-            message: 'What site is this a password for?'
+            message: 'What site or serivce is this a password for?'
         },
         {
             type: 'input',
@@ -205,6 +205,21 @@ function deleteUserMenuQA(userArray){
         })
 }
 
+function deletePasswordQA(site){
+    return inquirer
+    .prompt([
+        {
+            type: 'list',
+            name:'confirmation',
+            message: `You Are About To Delete ${site}'s Password From Your Database. Are You Sure?`,
+            choices:["Yes","No"]
+        }
+    ])
+    .then((menuAnswers) =>{
+        return menuAnswers
+    })
+}
+
 ////**********MAIN-MENU-TESTING*************////
 // async function mainMenu() {
 //     await mainMenuOptionsQA();
@@ -216,4 +231,4 @@ function deleteUserMenuQA(userArray){
 ////*************************************************////
 
 
-module.exports = { mainMenuOptionsQA , deleteUserMenuQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,newUserQA ,selectUserMenuQA,masterPasswordVerificationQA}
+module.exports = { mainMenuOptionsQA , deleteUserMenuQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,newUserQA ,selectUserMenuQA,masterPasswordVerificationQA,deletePasswordQA}

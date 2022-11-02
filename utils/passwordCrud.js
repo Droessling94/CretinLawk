@@ -1,7 +1,7 @@
 ////**********IMPORTS*************////
 const fs = require('fs');
 const { decryptThis, encryptThis } = require('./security');
-const { findBySiteQA, updatePassQA, createANewPasswordQA, showPassMainQA, mainMenuOptionsQA } = require('./inquirerQA');
+const { findBySiteQA, updatePassQA, createANewPasswordQA, showPassMainQA, mainMenuOptionsQA,deletePasswordQA } = require('./inquirerQA');
 const { generatePassword } = require('./../helperFunctions/generatePassword');
 const { writeFileToDB, writeDB, readAndParseFileFromDB, findBySite } = require('../helperFunctions/crudHelpers');
 const { isLengthValid } = require('../helperFunctions/validityHelpers');
@@ -17,6 +17,14 @@ async function createANewPassword(userIdentity) {
         let createANewPasswordOptions = await createANewPasswordQA();
         if (!isLengthValid(createANewPasswordOptions.pwLength)) {
             console.log('\n' + 'Returning To Previous Menu' + '\n');
+            return
+        }
+        if(!createANewPasswordOptions.login){
+            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
+            return
+        }
+        if(!createANewPasswordOptions.site){
+            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
             return
         }
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
@@ -35,6 +43,14 @@ async function createANewPassword(userIdentity) {
             console.log('\n' + 'Returning To Previous Menu' + '\n');
             return
         }
+        if(!createANewPasswordOptions.login){
+            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
+            return
+        }
+        if(!createANewPasswordOptions.site){
+            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
+            return
+        }
         const parsedPWLib = readAndParseFileFromDB(`./db/${userIdentity}PWDB.json`)
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
             createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
@@ -48,6 +64,14 @@ async function createANewPassword(userIdentity) {
         let createANewPasswordOptions = await createANewPasswordQA();
         if (!isLengthValid(createANewPasswordOptions.pwLength)) {
             console.log('\n' + 'Returning To Previous Menu' + '\n');
+            return
+        }
+        if(!createANewPasswordOptions.login){
+            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
+            return
+        }
+        if(!createANewPasswordOptions.site){
+            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
             return
         }
         const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
@@ -69,7 +93,7 @@ async function showPasswordBySite(user) {
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             decryptedPasswordBySite = decryptThis(searchedSiteObj.genPass);
-            console.log(`${user}'s Password For ${qaAnswer.siteName} is ${decryptedPasswordBySite}`);
+            console.log('\n'+`${user}'s Login For ${qaAnswer.siteName} is ${searchedSiteObj.login}`+'\n'+`${user}'s Password For ${qaAnswer.siteName} is ${decryptedPasswordBySite}`+'\n');
         } else { console.log("No Site Found By That Name, No Password Found"); }
     } else { console.log("No Saved Passwords"); }
 }
@@ -78,9 +102,9 @@ function showAllPasswords(user) {
     const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
     if (initialDBCheck) {
         const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
-        const passWordLeak = parsedPWLib.map(obj => `${user}'s Password For ${obj.site} is ${decryptThis(obj.genPass)}`)
+        const passWordLeak = parsedPWLib.map(obj => `${user}'s Login For ${obj.site} Is ${obj.login} And The Password Is ${decryptThis(obj.genPass)}`)
         if (passWordLeak[0]) {
-            console.log(passWordLeak);
+            console.table(passWordLeak);
         } else {
             console.log("No Saved Passwords");
         }
@@ -120,19 +144,25 @@ async function updatePassWord(user) {
 
 
 async function deletePassword(user) {
-    const initialUserCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if (initialUserCheck) {
-        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
-        const qaAnswer = await findBySiteQA()
-        const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
-        if (searchedSiteObj) {
-            const pwIndex = await parsedPWLib.findIndex(object => object.site === searchedSiteObj.site)
-            parsedPWLib.splice(pwIndex, 1)
-            writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
-        } else { console.log("No Site Found By That Name, No Password Found"); }
-    } else {
-        console.log("No Saved Passwords");
+    const initialPWFileCheck = fs.existsSync(`./db/${user}PWDB.json`);
+    if(!initialPWFileCheck) {
+        console.log('\n' + 'No Saved Passwords' + '\n' + 'Returning To Previous Menu');
+        return;
     }
+    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
+    const findBySiteAnswer = await findBySiteQA()
+    const foundSite = findBySite(parsedPWLib, findBySiteAnswer.siteName)
+    if (!foundSite){
+        console.log("No Site Found By That Name, No Password Found");
+        return
+    }
+    const deletePasswordAnswer = await deletePasswordQA(foundSite.site)
+    if(deletePasswordAnswer.confirmation == 'No'){
+        return
+    }
+    const pwIndex = await parsedPWLib.findIndex(object => object.site === foundSite.site)
+    parsedPWLib.splice(pwIndex, 1)
+    writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
 }
 
 async function mainMenu(user, configFile) {
