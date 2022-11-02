@@ -2,12 +2,12 @@
 const { mainMenuOptionsQA, showPassMainQA } = require('./utils/inquirerQA');
 const { createANewPassword } = require('./utils/createANewPasswordFunctionality');
 const { showPassWordsBySite, showAllPassWords, updatePassWord, deletePassword } = require('./utils/findAndShowPass');
-const { loadConfigFile, initUserConfigSet } = require('./utils/configLoadNSetFunctionality');
-const {existsSync} = require('fs')
+const { loginUser, initialRun } = require('./utils/configLoadNSetFunctionality');
+const {existsSync} = require('fs');
+const { readAndParseFileFromDB } = require('./helperFunctions/crudHelpers');
 ////******************************////
 
-
-async function mainMenu(user) {
+async function mainMenu(user, configFile) {
     let menu = await mainMenuOptionsQA();
 
     if (menu.destination == 'Create a New Password') {
@@ -29,26 +29,28 @@ async function mainMenu(user) {
             await deletePassword(user)
     }
     if (menu.destination == 'Change User Profile') {
-        user = await loadConfigFile();
+        user = await loginUser(configFile);
     }
     if (menu.destination == 'Exit') {
             return 
     }
 
-    mainMenu(user);
+    mainMenu(user, configFile);
 }
 
 async function onStart() {
+
+    //set up initial run check to add db if not added
     const initialRunCheck = existsSync(`./config.json`)
     if(!initialRunCheck) { await initialRun(); }
-    let userProfile = await loadConfigFile();
-
+    let configFile =  readAndParseFileFromDB(`./config.json`)
+    let userProfile = await loginUser(configFile);
     if(!userProfile) {
         console.log('\n'+"Thank you for using CretinLawk!"+'\n');
         return
     }
     console.log('\n'+`Successfully Logged In As ${userProfile}`+'\n');
-    await mainMenu(userProfile);
+    await mainMenu(userProfile, configFile);
     console.log('\n'+"Thank you for using CretinLawk!"+'\n');
 }
 
@@ -72,5 +74,4 @@ async function onStart() {
 //BIGTODO -- HARMING OR HAMMING TABLE OR HUFFMAN TREE -- WAY OF ENCODING
 //BIGTODO -- REFACTOR THIS BITCH TO MAKE SENSE
 onStart();
-
 

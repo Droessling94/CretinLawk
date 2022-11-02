@@ -6,20 +6,21 @@ const { log } = require('console');
 const crypto = require('crypto');
 
 
-async function hashText(text, dbSalt){
+function hashText(text, dbSalt){
     const salt = dbSalt || crypto.randomBytes(16).toString('hex');
     let hashedText = crypto.pbkdf2Sync(text, salt, 1000, 64, 'sha512').toString('hex');
     return `${salt}:${hashedText}`;
 }
 
-async function verifyHash(dbHash, textToVerify){
+function verifyHash(dbHash, textToVerify){
     let [salt, userHashedText] = dbHash.split(':');
-    let hashedSaltNTextToVerify = await hashText(textToVerify, salt);
+    let hashedSaltNTextToVerify = hashText(textToVerify, salt);
 
     let [throwAwaySalt, hashTextToVerifyPreBuffer] = hashedSaltNTextToVerify.split(':');
     if(userHashedText == hashTextToVerifyPreBuffer ){
         return true
     } else { 
+        console.log('\n' + "!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!" + '\n' + 'Your Passwords Did Not Match!' + '\n' + 'Returning To Previous Menu');
         return false
     }
 }

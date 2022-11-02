@@ -101,7 +101,7 @@ function showPassMainQA() {
     })
 }
 
-function initUserQA(){
+function newUserQA(){
     return inquirer
     .prompt([
         {
@@ -121,7 +121,7 @@ function initUserQA(){
     })
 }
 
-function selectUserQA(userArray){
+function selectUserMenuQA(userArray){
 
     return inquirer
     .prompt([
@@ -137,7 +137,7 @@ function selectUserQA(userArray){
     })
 }
 
-function masterPasswordVerifyQA(){
+function masterPasswordVerificationQA(){
     
     return inquirer
     .prompt([
@@ -181,14 +181,14 @@ function updatePassQA(){
         return passOptionAnswers;
     })
 }
-function verifyDeleteQA(userArray){
+function deleteUserMenuQA(userArray){
         return inquirer
         .prompt([
             {
                 type: 'list',
-                name:'user',
+                name:'destination',
                 message: "Select User Profile To Delete",
-                choices: [...userArray]
+                choices: [...userArray, 'Exit To Previous Menu']
             },
             {
                 type: 'input',
@@ -197,11 +197,7 @@ function verifyDeleteQA(userArray){
             },            {
                 type: 'input',
                 name:'passwordDoubleCheck',
-                message: "Confirm The Password A Second Time",
-            },            {
-                type: 'input',
-                name:'passwordTripleCheck',
-                message: "Confirm The Password A Third Time, You're About To Blow Up All Of Your Passwords",
+                message: "Are You Sure? You Are About To Nuke Your Passwords, Re-Type Your Password A Second Time To Confirm",
             }
         ])
         .then((menuAnswers) =>{
@@ -220,4 +216,4 @@ function verifyDeleteQA(userArray){
 ////*************************************************////
 
 
-module.exports = { mainMenuOptionsQA , verifyDeleteQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,initUserQA ,selectUserQA,masterPasswordVerifyQA}
+module.exports = { mainMenuOptionsQA , deleteUserMenuQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,newUserQA ,selectUserMenuQA,masterPasswordVerificationQA}
