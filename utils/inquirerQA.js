@@ -29,7 +29,7 @@ function mainMenuOptionsQA() {
 }
 
 
-function createANewPasswordQA(){
+function createANewRandomizedPasswordQA(){
     return inquirer
     .prompt([
         {
@@ -151,7 +151,7 @@ function masterPasswordVerificationQA(){
         return menuAnswers
     })
 }
-function updatePassQA(){
+function updatePassRandomQA(){
     return inquirer
     .prompt([
         {
@@ -176,6 +176,18 @@ function updatePassQA(){
             name:'upperCaseChars',
             message: 'Allow uppercased letters?',
             choices:["Yes","No"]
+        }])
+        .then((passOptionAnswers) => {
+        return passOptionAnswers;
+    })
+}
+function updatePassManualQA(){
+    return inquirer
+    .prompt([
+        {
+            type: 'input',
+            name:'userPassword',
+            message: 'What Would You Like Your New Password To Be?'
         }])
         .then((passOptionAnswers) => {
         return passOptionAnswers;
@@ -220,15 +232,56 @@ function deletePasswordQA(site){
     })
 }
 
+function typeOfPasswordQA(){
+    return inquirer
+    .prompt([
+        {
+            type: 'list',
+            name:'type',
+            message: `What Type Of Password Would You Like?`,
+            choices:["Fully Randomized [RECCOMMENDED]","Manually Entered"]
+        }
+    ])
+    .then((menuAnswers) =>{
+        return menuAnswers
+    })
+}
+function createANewManualPasswordQA(){
+    return inquirer
+    .prompt([
+        {
+            type: 'input',
+            name:'site',
+            message: 'What site or serivce is this a password for?'
+        },
+        {
+            type: 'input',
+            name:'login',
+            message: "What is the site's login or username?"
+        },
+        {
+            type: 'input',
+            name:'userPassword',
+            message: 'What Would You Like To Set For This Password?'
+        }
+    ])
+    .then((menuAnswers) =>{
+        return menuAnswers
+    })
+}
+
+
+
 ////**********MAIN-MENU-TESTING*************////
 // async function mainMenu() {
 //     await mainMenuOptionsQA();
 //     if(menu.destination == 'Create a New Password'){
-//         await createANewPasswordQA();
+//         await createANewRandomizedPasswordQA();
 //     }
 // }
 // mainMenu();
 ////*************************************************////
 
 
-module.exports = { mainMenuOptionsQA , deleteUserMenuQA, updatePassQA, createANewPasswordQA, findBySiteQA,showPassMainQA,newUserQA ,selectUserMenuQA,masterPasswordVerificationQA,deletePasswordQA}
+
+module.exports = { mainMenuOptionsQA , deleteUserMenuQA, updatePassRandomQA,updatePassManualQA, createANewManualPasswordQA, createANewRandomizedPasswordQA, findBySiteQA,showPassMainQA,newUserQA ,selectUserMenuQA,masterPasswordVerificationQA,deletePasswordQA,typeOfPasswordQA}

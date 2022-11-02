@@ -1,10 +1,9 @@
 ////**********IMPORTS*************////
 const fs = require('fs');
 const { decryptThis, encryptThis } = require('./security');
-const { findBySiteQA, updatePassQA, createANewPasswordQA, showPassMainQA, mainMenuOptionsQA,deletePasswordQA } = require('./inquirerQA');
-const { generatePassword } = require('./../helperFunctions/generatePassword');
+const { findBySiteQA, updatePassQA, showPassMainQA, mainMenuOptionsQA, deletePasswordQA, typeOfPasswordQA } = require('./inquirerQA');
+const { generatePassword, randomlyGeneratePassword, manuallyGeneratePassword, randomlyUpdatePassword, manuallyUpdatePassword } = require('./../helperFunctions/generatePassword');
 const { writeFileToDB, writeDB, readAndParseFileFromDB, findBySite } = require('../helperFunctions/crudHelpers');
-const { isLengthValid } = require('../helperFunctions/validityHelpers');
 const { changeUser } = require('./profileManagement.js');
 ////******************************////
 
@@ -13,76 +12,28 @@ async function createANewPassword(userIdentity) {
     const initialDBDirCheck = fs.existsSync(`./db`);
     if (!initialDBDirCheck) {
         writeDB(`./db`)
-        let pwLib = []
-        let createANewPasswordOptions = await createANewPasswordQA();
-        if (!isLengthValid(createANewPasswordOptions.pwLength)) {
-            console.log('\n' + 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.login){
-            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.site){
-            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
-            createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
-            createANewPasswordOptions.numberChars, createANewPasswordOptions.upperCaseChars);
+    }
+    let newGeneratedPassword
 
-        generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
-        pwLib.push(generatedPasswordObject)
-        writeFileToDB(`./db/${userIdentity}PWDB.json`, pwLib)
+    let typeOfPasswordAnswer = await typeOfPasswordQA();
+
+    if (typeOfPasswordAnswer.type == 'Manually Entered'){
+        newGeneratedPassword = await manuallyGeneratePassword()
+    }
+    else {
+        newGeneratedPassword = await randomlyGeneratePassword()
+    }
+
+    const initialPassLibCheck = fs.existsSync(`./db/${userIdentity}PWDB.json`);
+    if (!initialPassLibCheck) {
+        let pwLib = [];
+        pwLib.push(newGeneratedPassword);
+        writeFileToDB(`./db/${userIdentity}PWDB.json`, pwLib);
         return
     }
-    const initialPassLibCheck = fs.existsSync(`./db/${userIdentity}PWDB.json`);
-    if (initialPassLibCheck) {
-        let createANewPasswordOptions = await createANewPasswordQA();
-        if (!isLengthValid(createANewPasswordOptions.pwLength)) {
-            console.log('\n' + 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.login){
-            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.site){
-            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        const parsedPWLib = readAndParseFileFromDB(`./db/${userIdentity}PWDB.json`)
-        const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
-            createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
-            createANewPasswordOptions.numberChars, createANewPasswordOptions.upperCaseChars);
-
-        generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
-        parsedPWLib.push(generatedPasswordObject)
-        writeFileToDB(`./db/${userIdentity}PWDB.json`, parsedPWLib)
-    } else {
-        let pwLib = []
-        let createANewPasswordOptions = await createANewPasswordQA();
-        if (!isLengthValid(createANewPasswordOptions.pwLength)) {
-            console.log('\n' + 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.login){
-            console.log('\n' + 'No Login Or Username' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        if(!createANewPasswordOptions.site){
-            console.log('\n' + 'No Website Or Service Name Given' + '\n'+ 'Returning To Previous Menu' + '\n');
-            return
-        }
-        const generatedPasswordObject = generatePassword(createANewPasswordOptions.login, createANewPasswordOptions.site,
-            createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
-            createANewPasswordOptions.numberChars, createANewPasswordOptions.upperCaseChars);
-
-        generatedPasswordObject.genPass = encryptThis(generatedPasswordObject.genPass)
-        pwLib.push(generatedPasswordObject)
-        writeFileToDB(`./db/${userIdentity}PWDB.json`, pwLib)
-    }
-
+    const parsedPWLib = readAndParseFileFromDB(`./db/${userIdentity}PWDB.json`)
+    parsedPWLib.push(newGeneratedPassword)
+    writeFileToDB(`./db/${userIdentity}PWDB.json`, parsedPWLib)
 }
 
 async function showPasswordBySite(user) {
@@ -93,7 +44,7 @@ async function showPasswordBySite(user) {
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             decryptedPasswordBySite = decryptThis(searchedSiteObj.genPass);
-            console.log('\n'+`${user}'s Login For ${qaAnswer.siteName} is ${searchedSiteObj.login}`+'\n'+`${user}'s Password For ${qaAnswer.siteName} is ${decryptedPasswordBySite}`+'\n');
+            console.log('\n' + `${user}'s Login For ${qaAnswer.siteName} is ${searchedSiteObj.login}` + '\n' + `${user}'s Password For ${qaAnswer.siteName} is ${decryptedPasswordBySite}` + '\n');
         } else { console.log("No Site Found By That Name, No Password Found"); }
     } else { console.log("No Saved Passwords"); }
 }
@@ -123,41 +74,47 @@ async function showPasswords(user) {
     }
 }
 
-
+//--TODO -- refactor this
 async function updatePassWord(user) {
-    const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if (initialDBCheck) {
-        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
-        const qaAnswer = await findBySiteQA()
-        const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
-        if (searchedSiteObj) {
-            let createANewPasswordOptions = await updatePassQA()
-            const generatedPasswordObject = generatePassword(searchedSiteObj.login, searchedSiteObj.site,
-                createANewPasswordOptions.pwLength, createANewPasswordOptions.specialChars,
-                createANewPasswordOptions.numberChars, createANewPasswordOptions.upperCaseChars
-            );
-            searchedSiteObj.genPass = encryptThis(generatedPasswordObject.genPass)
-            writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
-        } else { console.log("No Site Found By That Name, No Password Found"); }
-    } else { console.log("No Saved Passwords"); }
+    if(!fs.existsSync(`./db/${user}PWDB.json`)){
+        console.log("No Saved Passwords");
+        return
+    }
+    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
+    const findBySiteAnswer = await findBySiteQA()
+    const foundPassword = findBySite(parsedPWLib, findBySiteAnswer.siteName)
+    if(!foundPassword){
+        console.log("No Site Found By That Name, No Password Found");
+        return
+    }
+    let newGeneratedPassword;
+    let typeOfPasswordAnswer = await typeOfPasswordQA();
+    if (typeOfPasswordAnswer.type == 'Manually Entered'){
+        newGeneratedPassword = await manuallyUpdatePassword();
+    }
+    else {
+        newGeneratedPassword = await randomlyUpdatePassword();
+    }
+    foundPassword.genPass = encryptThis(newGeneratedPassword.genPass)
+    writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
 }
 
 
 async function deletePassword(user) {
     const initialPWFileCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if(!initialPWFileCheck) {
+    if (!initialPWFileCheck) {
         console.log('\n' + 'No Saved Passwords' + '\n' + 'Returning To Previous Menu');
         return;
     }
     const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
     const foundSite = findBySite(parsedPWLib, findBySiteAnswer.siteName)
-    if (!foundSite){
+    if (!foundSite) {
         console.log("No Site Found By That Name, No Password Found");
         return
     }
     const deletePasswordAnswer = await deletePasswordQA(foundSite.site)
-    if(deletePasswordAnswer.confirmation == 'No'){
+    if (deletePasswordAnswer.confirmation == 'No') {
         return
     }
     const pwIndex = await parsedPWLib.findIndex(object => object.site === foundSite.site)

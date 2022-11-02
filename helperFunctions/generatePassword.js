@@ -1,4 +1,8 @@
-function generatePassword(siteLogin, site, pwLength, specialCharsOption, numberCharsOption, upperCaseCharsOption) {
+const { createANewManualPasswordQA, createANewRandomizedPasswordQA, updatePassRandomQA,updatePassManualQA} = require('../utils/inquirerQA');
+const { encryptThis } = require('../utils/security');
+const { isLengthValid } = require('./validityHelpers');
+
+function generateRandomPassword(siteLogin, site, pwLength, specialCharsOption, numberCharsOption, upperCaseCharsOption) {
     const specialCharsArray = ["!", "@", "#", "$", "%", "^", "&", "*", "-", "=", "+", "(", ")", "{", "}", "[", "]", "?", "/", ">", "<", ".", ","];
     const numberCharsArray = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
     const upperCaseArray = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
@@ -14,5 +18,70 @@ function generatePassword(siteLogin, site, pwLength, specialCharsOption, numberC
     let generatedPassword = generatedPasswordCharArray.join('');
     return { "login": siteLogin, "site": site, "genPass": generatedPassword };
 }
+async function manuallyGeneratePassword() {
+    let createANewManualPasswordAnswer = await createANewManualPasswordQA();
+    if (!createANewManualPasswordAnswer.login) {
+        console.log('\n' + 'No Login Or Username' + '\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    if (!createANewManualPasswordAnswer.site) {
+        console.log('\n' + 'No Website Or Service Name Given' + '\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    if (!isLengthValid(createANewManualPasswordAnswer.userPassword.length)) {
+        console.log('\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    createANewManualPasswordAnswer.userPassword = encryptThis(createANewManualPasswordAnswer.userPassword);
+    return { "login": createANewManualPasswordAnswer.login, "site": createANewManualPasswordAnswer.site, "genPass": createANewManualPasswordAnswer.userPassword };
+}
+async function manuallyUpdatePassword() {
+    let updatePassManualAnswer = await updatePassManualQA()
+    if (!isLengthValid(updatePassManualAnswer.userPassword.length)) {
+        console.log('\n' + 'Entered Nothing For Password, Please Re-Enter Password' + '\n');
+        return await manuallyUpdatePassword()
+    }
+ 
+    return { "login": 'updatePassManualAnswer.login', "site": 'updatePassManualAnswer.site', "genPass": updatePassManualAnswer.userPassword };
+}
 
-module.exports = {generatePassword} 
+async function randomlyGeneratePassword() {
+    let createANewRandomizedPasswordAnswer = await createANewRandomizedPasswordQA()
+        if (!isLengthValid(createANewRandomizedPasswordAnswer.pwLength)) {
+        console.log('\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    if (!createANewRandomizedPasswordAnswer.login) {
+        console.log('\n' + 'No Login Or Username' + '\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    if (!createANewRandomizedPasswordAnswer.site) {
+        console.log('\n' + 'No Website Or Service Name Given' + '\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    const randomlyGeneratedPassword = generateRandomPassword(createANewRandomizedPasswordAnswer.login, createANewRandomizedPasswordAnswer.site,
+        createANewRandomizedPasswordAnswer.pwLength, createANewRandomizedPasswordAnswer.specialChars,
+        createANewRandomizedPasswordAnswer.numberChars, createANewRandomizedPasswordAnswer.upperCaseChars);
+
+        randomlyGeneratedPassword.genPass = encryptThis(randomlyGeneratedPassword.genPass);
+    return randomlyGeneratedPassword;
+}
+async function randomlyUpdatePassword() {
+    let updatePassRandomAnswer = await updatePassRandomQA()
+        if (!isLengthValid(updatePassRandomAnswer.pwLength)) {
+        console.log('\n' + 'Returning To Previous Menu' + '\n');
+        return
+    }
+    const randomlyGeneratedPassword = generateRandomPassword(updatePassRandomAnswer.login, 'fixthis',
+    updatePassRandomAnswer.pwLength, updatePassRandomAnswer.specialChars,
+    updatePassRandomAnswer.numberChars, updatePassRandomAnswer.upperCaseChars);
+
+    
+    return randomlyGeneratedPassword;
+}
+
+
+
+module.exports = {manuallyGeneratePassword,randomlyGeneratePassword,randomlyUpdatePassword,manuallyUpdatePassword} 
+
+
