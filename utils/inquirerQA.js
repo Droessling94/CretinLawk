@@ -106,7 +106,7 @@ function newUserQA(){
     .prompt([
         {
             type: 'input',
-            name:'user',
+            name:'userName',
             message: "What is the User's name"
         },
         {

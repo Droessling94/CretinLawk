@@ -18,4 +18,12 @@ function writeDB(path){
     : console.log('\n'+"Database Intialized."+'\n'))
 }
 
-module.exports = {writeFileToDB,writeDB,readAndParseFileFromDB}
+function findBySite(pWLib, siteName) {
+    const foundSiteList = pWLib.filter(Obj => {
+        return Obj.site == siteName
+    })
+    const foundSite = foundSiteList[0]
+    return foundSite;
+}
+
+module.exports = {writeFileToDB,writeDB,readAndParseFileFromDB,findBySite}

@@ -1,5 +1,5 @@
-const { deleteUserMenuQA, newUserQA } = require("../utils/inquirerQA");
-const { verifyHash, hashText } = require("../utils/hashAndVerifyFunctionality");
+const { deleteUserMenuQA, newUserQA } = require("./inquirerQA");
+const { verifyHash, hashText } = require("./security");
 const { writeFileToDB } = require("../helperFunctions/crudHelpers");
 const { existsSync, unlinkSync } = require("fs");
 const { isLengthValid } = require("../helperFunctions/validityHelpers");
@@ -7,6 +7,10 @@ const { isLengthValid } = require("../helperFunctions/validityHelpers");
 
 async function createUserProfile(configFile){
     let newUserInfoAnswer = await newUserQA();
+    if(!newUserInfoAnswer.userName){
+        console.log('\n' + "You Must Provide The User's name" + '\n');
+        return false
+      }
     if(!isLengthValid(newUserInfoAnswer.masterPassword.length)){
         console.log('\n'+ "!!!ERROR!!!---!!!ERROR!!!---!!!ERROR!!!" + '\n'+'Password Was An Invalid Length'+'\n'+'Returning To Previous Menu'+'\n');
         return false
@@ -14,7 +18,7 @@ async function createUserProfile(configFile){
     newUserInfoAnswer.masterPassword = hashText(newUserInfoAnswer.masterPassword)
     configFile.push(newUserInfoAnswer)
     writeFileToDB(`./config.json`,configFile)
-    return newUserInfoAnswer.user
+    return newUserInfoAnswer.userName
 }
 
 async function deleteUserProfile(userNameArray, configFile){
