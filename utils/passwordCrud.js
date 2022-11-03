@@ -5,7 +5,7 @@ const { findBySiteQA, updatePassQA, showPassMainQA, mainMenuOptionsQA, deletePas
 const { generatePassword, randomlyGeneratePassword, manuallyGeneratePassword, randomlyUpdatePassword, manuallyUpdatePassword } = require('./../helperFunctions/generatePassword');
 const { writeFileToDB, writeDB, readAndParseFileFromDB, findBySite } = require('../helperFunctions/crudHelpers');
 const { changeUser } = require('./profileManagement.js');
-const { minorAlert, successAlert } = require('./chalkTalk');
+const { minorAlert, successAlert, postQuestionSpacer } = require('./chalkTalk');
 ////******************************////
 
 
@@ -17,8 +17,9 @@ async function createANewPassword(userIdentity) {
     let newGeneratedPassword
 
     let typeOfPasswordAnswer = await typeOfPasswordQA();
-
+    postQuestionSpacer();
     if (typeOfPasswordAnswer.type == 'Manually Entered'){
+        
         newGeneratedPassword = await manuallyGeneratePassword()
     }
     else {
@@ -42,6 +43,7 @@ async function showPasswordBySite(user) {
     if (initialDBCheck) {
         const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`)
         const qaAnswer = await findBySiteQA()
+        postQuestionSpacer();
         const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
         if (searchedSiteObj) {
             decryptedPasswordBySite = decryptThis(searchedSiteObj.genPass);
@@ -67,6 +69,7 @@ function showAllPasswords(user) {
 
 async function showPasswords(user) {
     menu = await showPassMainQA()
+    postQuestionSpacer();
     if (menu.destination == "Find By Site Name") {
         await showPasswordBySite(user)
     }
@@ -83,6 +86,7 @@ async function updatePassWord(user) {
     }
     const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
+    postQuestionSpacer();
     const foundPassword = findBySite(parsedPWLib, findBySiteAnswer.siteName)
     if(!foundPassword){
         minorAlert("No Site Found By That Name, No Password Found");
@@ -90,6 +94,7 @@ async function updatePassWord(user) {
     }
     let newGeneratedPassword;
     let typeOfPasswordAnswer = await typeOfPasswordQA();
+    postQuestionSpacer();
     if (typeOfPasswordAnswer.type == 'Manually Entered'){
         newGeneratedPassword = await manuallyUpdatePassword();
     }
@@ -109,12 +114,14 @@ async function deletePassword(user) {
     }
     const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
+    postQuestionSpacer();
     const foundSite = findBySite(parsedPWLib, findBySiteAnswer.siteName)
     if (!foundSite) {
         minorAlert("No Site Found By That Name, No Password Found")
         return
     }
     const deletePasswordAnswer = await deletePasswordQA(foundSite.site)
+    postQuestionSpacer();
     if (deletePasswordAnswer.confirmation == 'No') {
         return
     }
@@ -125,6 +132,7 @@ async function deletePassword(user) {
 
 async function mainMenu(user, configFile) {
     let menu = await mainMenuOptionsQA();
+    postQuestionSpacer();
     if (menu.destination == 'Create a New Password') {
         await createANewPassword(user);
     }

@@ -8,7 +8,7 @@ const { deleteUserProfile, createUserProfile } = require('./profileCrud')
 const { hashText, verifyHash } = require("./security");
 const { isLengthValid } = require('../helperFunctions/validityHelpers');
 const { writeFileToDB } = require("../helperFunctions/crudHelpers");
-const { successAlert } = require("./chalkTalk");
+const { successAlert, postQuestionSpacer } = require("./chalkTalk");
 
 async function initialRun() {
   const initialDB = [];
@@ -20,6 +20,7 @@ async function loginUser(configFile) {
 
   let userNameArrayForQA = await configFile.map(obj => obj.userName );
   let selectUserMenuAnswer = await selectUserMenuQA(userNameArrayForQA);
+  postQuestionSpacer();
   if (selectUserMenuAnswer.destination == 'Add New User Profile') {
     let newUser = await createUserProfile(configFile)
     return newUser ? newUser
@@ -34,6 +35,7 @@ async function loginUser(configFile) {
   }
   else {
     let masterPasswordVerifyAnswer = await masterPasswordVerificationQA();
+    postQuestionSpacer();
     let userSelected = configFile.filter((obj) => obj.userName == selectUserMenuAnswer.destination ? obj : "");
     return !verifyHash(userSelected[0].masterPassword, masterPasswordVerifyAnswer.password)
       ? await loginUser(configFile)

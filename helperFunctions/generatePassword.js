@@ -1,4 +1,4 @@
-const { minorAlert } = require('../utils/chalkTalk');
+const { minorAlert, postQuestionSpacer } = require('../utils/chalkTalk');
 const { createANewManualPasswordQA, createANewRandomizedPasswordQA, updatePassRandomQA, updatePassManualQA } = require('../utils/inquirerQA');
 const { encryptThis } = require('../utils/security');
 const { isLengthValid } = require('./validityHelpers');
@@ -21,6 +21,7 @@ function generateRandomPassword(siteLogin, site, pwLength, specialCharsOption, n
 }
 async function manuallyGeneratePassword() {
     let createANewManualPasswordAnswer = await createANewManualPasswordQA();
+    postQuestionSpacer();
     if (!createANewManualPasswordAnswer.login) {
         minorAlert('No Login Or Username! Returning To Previous Menu');
         return
@@ -37,7 +38,8 @@ async function manuallyGeneratePassword() {
     return { "login": createANewManualPasswordAnswer.login, "site": createANewManualPasswordAnswer.site, "genPass": createANewManualPasswordAnswer.userPassword };
 }
 async function manuallyUpdatePassword() {
-    let updatePassManualAnswer = await updatePassManualQA()
+    let updatePassManualAnswer = await updatePassManualQA();
+    postQuestionSpacer();
     if (!isLengthValid(updatePassManualAnswer.userPassword.length) || updatePassManualAnswer.userPassword.length > 128) {
         minorAlert('Entered Nothing For Password, Please Re-Enter Password')
         return await manuallyUpdatePassword()
@@ -48,6 +50,7 @@ async function manuallyUpdatePassword() {
 
 async function randomlyGeneratePassword() {
     let createANewRandomizedPasswordAnswer = await createANewRandomizedPasswordQA()
+    postQuestionSpacer();
     if (!isLengthValid(createANewRandomizedPasswordAnswer.pwLength) || createANewRandomizedPasswordAnswer.pwLength > 128) {
         minorAlert('Invalid Password Length! Returning To Previous Menu')
         return await randomlyGeneratePassword();
@@ -69,6 +72,7 @@ async function randomlyGeneratePassword() {
 }
 async function randomlyUpdatePassword() {
     let updatePassRandomAnswer = await updatePassRandomQA()
+    postQuestionSpacer();
     if (!isLengthValid(updatePassRandomAnswer.pwLength) || updatePassRandomAnswer.pwLength > 128) {
         minorAlert('Invalid Password Length! Returning To Previous Menu')
         return await randomlyUpdatePassword()

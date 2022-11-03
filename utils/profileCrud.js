@@ -3,11 +3,12 @@ const { verifyHash, hashText } = require("./security");
 const { writeFileToDB } = require("../helperFunctions/crudHelpers");
 const { existsSync, unlinkSync } = require("fs");
 const { isLengthValid } = require("../helperFunctions/validityHelpers");
-const { minorAlert, successAlert, majorAlert } = require("./chalkTalk");
+const { minorAlert, successAlert, majorAlert, postQuestionSpacer } = require("./chalkTalk");
 
 
 async function createUserProfile(configFile){
     let newUserInfoAnswer = await newUserQA();
+    postQuestionSpacer();
     if(!newUserInfoAnswer.userName){
         minorAlert("You Must Provide The User's name! Returning to Previous Menu")
         return false
@@ -24,6 +25,7 @@ async function createUserProfile(configFile){
 
 async function deleteUserProfile(userNameArray, configFile){
     let deleteUserMenuAnswer = await deleteUserMenuQA(userNameArray);
+    postQuestionSpacer();
     console.log(deleteUserMenuAnswer);
         if(deleteUserMenuAnswer.destination == 'Exit To Previous Menu'){
             successAlert('Exiting To Previous Menu')
@@ -39,9 +41,9 @@ async function deleteUserProfile(userNameArray, configFile){
     const userIndex = await configFile.findIndex(object => object.user == deleteUserMenuAnswer.destination)
     configFile.splice(userIndex, 1);
     writeFileToDB(`./config.json`,configFile)
-    const userPasswords = existsSync(`./db/${chosenUser[0].user}PWDB.json`);
+    const userPasswords = existsSync(`./db/${chosenUser[0].userName}PWDB.json`);
         if(userPasswords){
-            unlinkSync(`./db/${chosenUser[0].user}PWDB.json`, (err => {if (err) majorAlert(err);else {""}}));
+            unlinkSync(`./db/${chosenUser[0].userName}PWDB.json`, (err => {if (err) majorAlert(err);else {""}}));
             successAlert('User Profile And Associated Passwords Deleted! Returning To Previous Menu')
             return true;
         } else {
