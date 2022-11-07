@@ -18,9 +18,11 @@ async function createUserProfile(configFile){
         return false
     }
     newUserInfoAnswer.masterPassword = hashText(newUserInfoAnswer.masterPassword)
+    newUserInfoAnswer.passwords = []
+    console.log(newUserInfoAnswer);
     configFile.push(newUserInfoAnswer)
     writeFileToDB(`./config.json`,configFile)
-    return newUserInfoAnswer.userName
+    return newUserInfoAnswer
 }
 
 async function deleteUserProfile(userNameArray, configFile){
@@ -50,7 +52,6 @@ async function deleteUserProfile(userNameArray, configFile){
             minorAlert('User Profile Deleted But Password File Remains, Please Manually Delete This From Your DB Folder')
         }
 }
-
 
 
 

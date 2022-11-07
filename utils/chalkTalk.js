@@ -29,4 +29,10 @@ function postQuestionSpacer(){
     console.log('\n'+'\n'+'\n'+chalk.greenBright('↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓')+'\n'+'\n'+'\n')
 }
 
-module.exports = {majorAlert,minorAlert,successAlert,returnIntroAlert,firstIntroAlert,postQuestionSpacer}
+function exitAlert(){
+    // console.log('\n' + "Thank you for using CretinLawk!" + '\n');
+    console.log(chalk.black.bgGreenBright('\n'+"~~~~~~~~~~~~~~Thank You!~~~~~~~~~~~~~~"+'\n')
+    + chalk.greenBright('Hope To See You Again, And Dont Forget That Password!')+chalk.black.bgGreenBright('\n'+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"+'\n'));
+}
+
+module.exports = {majorAlert,minorAlert,successAlert,returnIntroAlert,firstIntroAlert,postQuestionSpacer,exitAlert}

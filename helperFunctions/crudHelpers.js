@@ -14,17 +14,12 @@ function readAndParseFileFromDB(path){
         return parsedFileContents;
 }
 
-function writeDB(path){
-    fs.mkdirSync(path, (err) => err ? majorAlert('File Was Unable To Be Saved')
-    : successAlert("Database Intialized."))
-}
-
-function findBySite(pWLib, siteName) {
-    const foundSiteList = pWLib.filter(Obj => {
+function findBySite(userPasswordArray, siteName) {
+    const foundSiteList = userPasswordArray.filter(Obj => {
         return Obj.site == siteName
     })
     const foundSite = foundSiteList[0]
     return foundSite;
 }
 
-module.exports = {writeFileToDB,writeDB,readAndParseFileFromDB,findBySite}
+module.exports = {writeFileToDB,readAndParseFileFromDB,findBySite}

@@ -3,11 +3,9 @@
 //--If it cannot find a config file we will ask the user their info and make one--//
 ////***************////
 
-const { newUserQA, selectUserMenuQA, masterPasswordVerificationQA } = require("./inquirerQA");
+const { selectUserMenuQA, masterPasswordVerificationQA } = require("./inquirerQA");
 const { deleteUserProfile, createUserProfile } = require('./profileCrud')
-const { hashText, verifyHash } = require("./security");
-const { isLengthValid } = require('../helperFunctions/validityHelpers');
-const { writeFileToDB } = require("../helperFunctions/crudHelpers");
+const { verifyHash } = require("./security");
 const { successAlert, postQuestionSpacer } = require("./chalkTalk");
 
 async function initialRun() {
@@ -39,7 +37,7 @@ async function loginUser(configFile) {
     let userSelected = configFile.filter((obj) => obj.userName == selectUserMenuAnswer.destination ? obj : "");
     return !verifyHash(userSelected[0].masterPassword, masterPasswordVerifyAnswer.password)
       ? await loginUser(configFile)
-      : userSelected[0].userName
+      : userSelected[0]
   }
 }
 
@@ -56,7 +54,7 @@ async function changeUser(user, configFile){
   if(replacementUser == 'Exit') {
       return user
   }
-  successAlert(`Logged In As ${replacementUser}`)
+  successAlert(`Logged In As ${replacementUser.userName}`)
   return replacementUser
 }
 

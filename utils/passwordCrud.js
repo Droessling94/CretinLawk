@@ -9,11 +9,8 @@ const { minorAlert, successAlert, postQuestionSpacer } = require('./chalkTalk');
 ////******************************////
 
 
-async function createANewPassword(userIdentity) {
-    const initialDBDirCheck = fs.existsSync(`./db`);
-    if (!initialDBDirCheck) {
-        writeDB(`./db`)
-    }
+async function createANewPassword(userObject,configFile) {
+
     let newGeneratedPassword
 
     let typeOfPasswordAnswer = await typeOfPasswordQA();
@@ -25,69 +22,52 @@ async function createANewPassword(userIdentity) {
     else {
         newGeneratedPassword = await randomlyGeneratePassword()
     }
-
-    const initialPassLibCheck = fs.existsSync(`./db/${userIdentity}PWDB.json`);
-    if (!initialPassLibCheck) {
-        let pwLib = [];
-        pwLib.push(newGeneratedPassword);
-        writeFileToDB(`./db/${userIdentity}PWDB.json`, pwLib);
-        return
-    }
-    const parsedPWLib = readAndParseFileFromDB(`./db/${userIdentity}PWDB.json`)
-    parsedPWLib.push(newGeneratedPassword)
-    writeFileToDB(`./db/${userIdentity}PWDB.json`, parsedPWLib)
+    userObject.passwords.push(newGeneratedPassword)
+    const userIndex = await configFile.findIndex(object => object.userName == userObject.userName)
+    configFile.splice(userIndex, 1);
+    configFile.push(userObject)
+    writeFileToDB(`./config.json`,configFile)
 }
 
-async function showPasswordBySite(user) {
-    const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if (initialDBCheck) {
-        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`)
+async function showPasswordBySite(userObject, configFile) {
         const qaAnswer = await findBySiteQA()
         postQuestionSpacer();
-        const searchedSiteObj = findBySite(parsedPWLib, qaAnswer.siteName)
+        const searchedSiteObj = findBySite(userObject.passwords, qaAnswer.siteName)
         if (searchedSiteObj) {
             decryptedPasswordBySite = decryptThis(searchedSiteObj.genPass);
-            successAlert(`${user}'s ${qaAnswer.siteName} Login:${searchedSiteObj.login} -- Password:${decryptedPasswordBySite}`)
+            successAlert(`${userObject.userName}'s ${qaAnswer.siteName} Login:${searchedSiteObj.login} -- Password:${decryptedPasswordBySite}`)
         } else { minorAlert("No Site Found By That Name, No Password Found"); }
-    } else { minorAlert("No Saved Passwords") }
 }
 
-function showAllPasswords(user) {
-    const initialDBCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if (initialDBCheck) {
-        const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
-        const passWordLeak = parsedPWLib.map(obj => `${user}'s Login For ${obj.site} Is ${obj.login} And The Password Is ${decryptThis(obj.genPass)}`)
+function showAllPasswords(userObject, configFile) {
+        const passWordLeak = userObject.passwords.map(obj => `${userObject.userName}'s Login For ${obj.site} Is ${obj.login} And The Password Is ${decryptThis(obj.genPass)}`)
         if (passWordLeak[0]) {
             console.table(passWordLeak);
         } else {
             minorAlert("No Saved Passwords");
         }
-    } else {
-        minorAlert("No Saved Passwords");
-    }
 }
 
-async function showPasswords(user) {
+async function showPasswords(userObject, configFile) {
     menu = await showPassMainQA()
     postQuestionSpacer();
     if (menu.destination == "Find By Site Name") {
-        await showPasswordBySite(user)
+        await showPasswordBySite(userObject, configFile)
     }
     if (menu.destination == "Show All") {
-        showAllPasswords(user)
+        showAllPasswords(userObject, configFile)
     }
 }
 
 //--TODO -- refactor this
-async function updatePassWord(user) {
-    if(!fs.existsSync(`./db/${user}PWDB.json`)){
+async function updatePassWord(userObject, configFile) {
+    if(!userObject.passwords){
         minorAlert("No Saved Passwords");
         return
     }
-    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
     postQuestionSpacer();
-    const foundPassword = findBySite(parsedPWLib, findBySiteAnswer.siteName)
+    const foundPassword = findBySite(userObject.passwords, findBySiteAnswer.siteName)
     if(!foundPassword){
         minorAlert("No Site Found By That Name, No Password Found");
         return
@@ -102,20 +82,24 @@ async function updatePassWord(user) {
         newGeneratedPassword = await randomlyUpdatePassword();
     }
     foundPassword.genPass = encryptThis(newGeneratedPassword.genPass)
-    writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
+    const passwordIndex = await userObject.passwords.findIndex(object => object.site == findBySiteAnswer.siteName)
+    userObject.passwords.splice(passwordIndex, 1);
+    userObject.passwords.push(foundPassword)
+    const userIndex = await configFile.findIndex(object => object.userName == userObject.userName)
+    configFile.splice(userIndex, 1);
+    configFile.push(userObject)
+    writeFileToDB(`./config.json`,configFile)
 }
 
 
-async function deletePassword(user) {
-    const initialPWFileCheck = fs.existsSync(`./db/${user}PWDB.json`);
-    if (!initialPWFileCheck) {
+async function deletePassword(userObject, configFile) {
+    if (!userObject.passwords) {
         minorAlert('No Saved Passwords, Returning To Previous Menu');
         return;
     }
-    const parsedPWLib = readAndParseFileFromDB(`./db/${user}PWDB.json`);
     const findBySiteAnswer = await findBySiteQA()
     postQuestionSpacer();
-    const foundSite = findBySite(parsedPWLib, findBySiteAnswer.siteName)
+    const foundSite = findBySite(userObject.passwords, findBySiteAnswer.siteName)
     if (!foundSite) {
         minorAlert("No Site Found By That Name, No Password Found")
         return
@@ -125,25 +109,28 @@ async function deletePassword(user) {
     if (deletePasswordAnswer.confirmation == 'No') {
         return
     }
-    const pwIndex = await parsedPWLib.findIndex(object => object.site === foundSite.site)
-    parsedPWLib.splice(pwIndex, 1)
-    writeFileToDB(`./db/${user}PWDB.json`, parsedPWLib)
+    const pwIndex = await userObject.passwords.findIndex(object => object.site === foundSite.site)
+    userObject.passwords.splice(pwIndex, 1)
+    const userIndex = await configFile.findIndex(object => object.userName == userObject.userName)
+    configFile.splice(userIndex, 1);
+    configFile.push(userObject)
+    writeFileToDB(`./config.json`,configFile)
 }
 
 async function mainMenu(user, configFile) {
     let menu = await mainMenuOptionsQA();
     postQuestionSpacer();
     if (menu.destination == 'Create a New Password') {
-        await createANewPassword(user);
+        await createANewPassword(user,configFile);
     }
     if (menu.destination == 'Show Passwords') {
-        await showPasswords(user);
+        await showPasswords(user,configFile);
     }
     if (menu.destination == 'Update Password') {
-        await updatePassWord(user);
+        await updatePassWord(user,configFile);
     }
     if (menu.destination == 'Delete Password') {
-        await deletePassword(user);
+        await deletePassword(user,configFile);
     }
     if (menu.destination == 'Change User Profile') {
         user = await changeUser(user, configFile);
