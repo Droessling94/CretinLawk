@@ -19,7 +19,6 @@ async function createUserProfile(configFile){
     }
     newUserInfoAnswer.masterPassword = hashText(newUserInfoAnswer.masterPassword)
     newUserInfoAnswer.passwords = []
-    console.log(newUserInfoAnswer);
     configFile.push(newUserInfoAnswer)
     writeFileToDB(`./config.json`,configFile)
     return newUserInfoAnswer
@@ -28,7 +27,6 @@ async function createUserProfile(configFile){
 async function deleteUserProfile(userNameArray, configFile){
     let deleteUserMenuAnswer = await deleteUserMenuQA(userNameArray);
     postQuestionSpacer();
-    console.log(deleteUserMenuAnswer);
         if(deleteUserMenuAnswer.destination == 'Exit To Previous Menu'){
             successAlert('Exiting To Previous Menu')
             return false;
