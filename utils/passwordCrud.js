@@ -118,6 +118,10 @@ async function deletePassword(userObject, configFile) {
 }
 
 async function mainMenu(user, configFile) {
+    const UserCheck = await configFile.some(Obj => {
+        return Obj.userName == user.userName
+    })
+    if(!UserCheck) {return}
     let menu = await mainMenuOptionsQA();
     postQuestionSpacer();
     if (menu.destination == 'Create a New Password') {
